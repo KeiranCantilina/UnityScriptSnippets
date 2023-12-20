@@ -10,6 +10,7 @@ public class EventProcessor : MonoBehaviour
     public Transform CubeOrientation;
 
     private System.Object _queueLock = new System.Object();
+    
     List<byte[]> _queuedData = new List<byte[]>();
     List<byte[]> _processingData = new List<byte[]>();
 
@@ -33,7 +34,8 @@ public class EventProcessor : MonoBehaviour
             {
                 var IMUData = IMU_DataPacket.ParseDataPacket(byteData);
                 TextDebug.text = IMUData.ToString();
-                //STUFF HERE
+                //UPDATE CUBE ORIENTATION HERE
+                CubeOrientation.rotation.Set(IMUData.rX, IMUData.rY, IMUData.rZ, IMUData.rW); 
             }
             catch (Exception e)
             {
@@ -41,8 +43,6 @@ public class EventProcessor : MonoBehaviour
             }
         }
     }
-
-    
 
 
     private void MoveQueuedEventsToExecuting()
