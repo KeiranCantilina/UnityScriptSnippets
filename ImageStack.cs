@@ -23,9 +23,9 @@ namespace DICOMParser
 
         private int[] _data;
 
-        private Texture2D[] _transversalTexture2Ds;
-        private Texture2D[] _frontalTexture2Ds;
-        private Texture2D[] _sagittalTexture2Ds;
+        public Texture2D[] _transversalTexture2Ds;
+        public Texture2D[] _frontalTexture2Ds;
+        public Texture2D[] _sagittalTexture2Ds;
         
         private DiFile[] _dicomFiles;
 
