@@ -4,9 +4,9 @@ using UnityEngine;
 using TMPro;
 using DICOMParser;
 using DICOMViews;
-using System.IO;
+//using System.IO;
 using Threads;
-using System.Threading;
+//using System.Threading;
 using System;
 using Microsoft.MixedReality.Toolkit.UI;
 
@@ -37,7 +37,7 @@ public class LoadDICOM : MonoBehaviour
         doneLoading = false;
         sliceindex = 0;
         oldsliceindex = 0;
-        folderpath = Application.dataPath + "\\Datasets\\1156_DICOM";
+        folderpath = Application.dataPath + "\\StreamingAssets";
         oldSliceType = sliceType;
     }
 
@@ -122,15 +122,15 @@ public class LoadDICOM : MonoBehaviour
     {
         if (sliceType == SliceType.Transversal)
         {
-            maxIndex = imagestack._transversalTexture2Ds.Length-1;
+            maxIndex = imagestack.GetMaxValue(SliceType.Transversal);
         }
         else if (sliceType == SliceType.Sagittal)
         {
-            maxIndex = imagestack._sagittalTexture2Ds.Length-1;
+            maxIndex = imagestack.GetMaxValue(SliceType.Sagittal);
         }
         else
         {
-            maxIndex = imagestack._frontalTexture2Ds.Length-1;
+            maxIndex = imagestack.GetMaxValue(SliceType.Frontal);
         }
 
         doneLoading = true;

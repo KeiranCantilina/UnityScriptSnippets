@@ -23,9 +23,9 @@ namespace DICOMParser
 
         private int[] _data;
 
-        public Texture2D[] _transversalTexture2Ds;
-        public Texture2D[] _frontalTexture2Ds;
-        public Texture2D[] _sagittalTexture2Ds;
+        private Texture2D[] _transversalTexture2Ds;
+        private Texture2D[] _frontalTexture2Ds;
+        private Texture2D[] _sagittalTexture2Ds;
         
         private DiFile[] _dicomFiles;
 
@@ -268,7 +268,7 @@ namespace DICOMParser
         /// <returns>IEnumerator for usage as a coroutine</returns>
         private void PreprocessData(ThreadGroupState threadGroupState)
         {
-            StartPreProcessing(threadGroupState, DicomFiles, _data, 12); // default 12 threads.
+            StartPreProcessing(threadGroupState, DicomFiles, _data, 4); // default 12 threads.
         }
 
         /// <summary>
@@ -314,9 +314,9 @@ namespace DICOMParser
             var frontProgress = new ConcurrentQueue<int>();
             var sagProgress = new ConcurrentQueue<int>();
 
-            StartCreatingTransTextures(threadGroupState, transProgress, _data, DicomFiles, transTextureColors, WindowWidth, WindowCenter, 2);
-            StartCreatingFrontTextures(threadGroupState, frontProgress, _data, DicomFiles, frontTextureColors, WindowWidth, WindowCenter, 2);
-            StartCreatingSagTextures(threadGroupState, sagProgress, _data, DicomFiles, sagTextureColors, WindowWidth, WindowCenter, 2);
+            StartCreatingTransTextures(threadGroupState, transProgress, _data, DicomFiles, transTextureColors, WindowWidth, WindowCenter, 1); // Default 2 threads
+            StartCreatingFrontTextures(threadGroupState, frontProgress, _data, DicomFiles, frontTextureColors, WindowWidth, WindowCenter, 1);
+            StartCreatingSagTextures(threadGroupState, sagProgress, _data, DicomFiles, sagTextureColors, WindowWidth, WindowCenter, 1);
 
             while (threadGroupState.Working > 0 || !(transProgress.IsEmpty && frontProgress.IsEmpty && sagProgress.IsEmpty))
             {
@@ -362,6 +362,7 @@ namespace DICOMParser
             currentTexture2D.filterMode = FilterMode.Point;
             currentTexture2D.Apply();
             Destroy(target[current]);
+            currentTexture2D.Compress(false);//Added by KKC
             target[current] = currentTexture2D;
         }
 
