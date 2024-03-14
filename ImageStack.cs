@@ -357,12 +357,13 @@ namespace DICOMParser
         /// <param name="current">Index of the Texture to be created.</param>
         private static void CreateTexture2D(int width, int height, IReadOnlyList<Color32[]> textureColors, IList<Texture2D> target, int current)
         {
-            var currentTexture2D = new Texture2D(width, height, TextureFormat.ARGB32, true);
+            //var currentTexture2D = new Texture2D(width, height, TextureFormat.ARGB32, true);
+            var currentTexture2D = new Texture2D(width, height, TextureFormat.R8, true); // Changed by KKC
             currentTexture2D.SetPixels32(textureColors[current]);
             currentTexture2D.filterMode = FilterMode.Point;
             currentTexture2D.Apply();
             Destroy(target[current]);
-            currentTexture2D.Compress(false);//Added by KKC
+            currentTexture2D.Compress(true);//Added by KKC
             target[current] = currentTexture2D;
         }
 
@@ -683,7 +684,8 @@ namespace DICOMParser
             for (var layer = start; layer < end; ++layer)
             {
                 target[layer] = new Color32[width*height];
-                FillPixelsTransversal(layer, data, width, height, files, target[layer], TransferFunction.Identity, windowWidth, windowCenter);
+                //FillPixelsTransversal(layer, data, width, height, files, target[layer], TransferFunction.Identity, windowWidth, windowCenter);
+                FillPixelsTransversal(layer, data, width, height, files, target[layer], TransferFunction.GRAYSCALE, windowWidth, windowCenter); // Changed by KKC
                 processed.Enqueue(layer);
                 Thread.Sleep(5);
             }
@@ -745,7 +747,8 @@ namespace DICOMParser
             for (var y = start; y < end; ++y)
             {
                 target[y] = new Color32[width * files.Count];
-                FillPixelsFrontal(y, data, width, height, files, target[y], TransferFunction.Identity, windowWidth, windowCenter);
+                //FillPixelsFrontal(y, data, width, height, files, target[y], TransferFunction.Identity, windowWidth, windowCenter);
+                FillPixelsFrontal(y, data, width, height, files, target[y], TransferFunction.GRAYSCALE, windowWidth, windowCenter); // Changed by KKC
                 processed.Enqueue(y);
                 Thread.Sleep(5);
             }
@@ -806,7 +809,8 @@ namespace DICOMParser
             for (var x = start; x < end; ++x)
             {
                 target[x] = new Color32[height * files.Count];
-                FillPixelsSagittal(x, data, width, height, files, target[x], TransferFunction.Identity, windowWidth, windowCenter);
+                //FillPixelsSagittal(x, data, width, height, files, target[x], TransferFunction.Identity, windowWidth, windowCenter);
+                FillPixelsSagittal(x, data, width, height, files, target[x], TransferFunction.GRAYSCALE, windowWidth, windowCenter); // Changed by KKC
                 processed.Enqueue(x);
                 Thread.Sleep(5);
             }
@@ -825,7 +829,9 @@ namespace DICOMParser
         /// <param name="texData">target texture array</param>
         public static void FillPixelsTransversal(int id, int[] data, int width, int height, IReadOnlyList<DiFile> files, Color32[] texData)
         {
-            FillPixelsTransversal(id, data, width, height, files, texData, TransferFunction.Identity);
+            //FillPixelsTransversal(id, data, width, height, files, texData, TransferFunction.Identity);
+            FillPixelsTransversal(id, data, width, height, files, texData, TransferFunction.GRAYSCALE); // Changed by KKC
+
         }
 
         /// <summary>
@@ -1003,7 +1009,8 @@ namespace DICOMParser
             }
             var result = (byte)Math.Round(intensity);
 
-            return new Color32(result, result, result, rgbRange);
+            //return new Color32(result, result, result, rgbRange);
+            return new Color32(result, result, result, result);
         }
 
         /// <summary>
