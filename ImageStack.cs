@@ -363,7 +363,7 @@ namespace DICOMParser
             currentTexture2D.filterMode = FilterMode.Point;
             currentTexture2D.Apply();
             Destroy(target[current]);
-            currentTexture2D.Compress(true);//Added by KKC
+            //currentTexture2D.Compress(true);//Added by KKC
             target[current] = currentTexture2D;
         }
 

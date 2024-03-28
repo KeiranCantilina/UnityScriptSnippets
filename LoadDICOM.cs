@@ -30,6 +30,8 @@ public class LoadDICOM : MonoBehaviour
     public PinchSlider slider;
     private int maxIndex = 0;
     public bool doneLoading;
+    public bool compress;
+    private Vector3 DefaultView;
 
     // Start is called before the first frame update
     void Start()
@@ -39,6 +41,7 @@ public class LoadDICOM : MonoBehaviour
         oldsliceindex = 0;
         folderpath = Application.dataPath + "\\StreamingAssets";
         oldSliceType = sliceType;
+        DefaultView = this.transform.localEulerAngles;
     }
 
     // Update is called once per frame
@@ -123,14 +126,17 @@ public class LoadDICOM : MonoBehaviour
         if (sliceType == SliceType.Transversal)
         {
             maxIndex = imagestack.GetMaxValue(SliceType.Transversal);
+            this.transform.localEulerAngles = new Vector3(180, 0, 0);
         }
         else if (sliceType == SliceType.Sagittal)
         {
             maxIndex = imagestack.GetMaxValue(SliceType.Sagittal);
+            this.transform.localEulerAngles = DefaultView;
         }
         else
         {
             maxIndex = imagestack.GetMaxValue(SliceType.Frontal);
+            this.transform.localEulerAngles = DefaultView;
         }
 
         doneLoading = true;
@@ -176,6 +182,7 @@ public class LoadDICOM : MonoBehaviour
     public void SetViewTransverse()
     {
         sliceType = SliceType.Transversal;
+
     }
     public void SetViewSagittal()
     {

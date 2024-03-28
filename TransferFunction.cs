@@ -39,9 +39,15 @@ namespace DICOMParser
 
         public static Color32 GRAYSCALE(Color32 isoColor)
         {
-            isoColor.a = isoColor.r;
+            isoColor.r = (byte)((isoColor.r)*(230)/255);
+            //isoColor.a = isoColor.r;
             return isoColor;
-        } 
+        }
+
+        private float map(float s, float a1, float a2, float b1, float b2)
+        {
+            return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
+        }
     }
 
 }
