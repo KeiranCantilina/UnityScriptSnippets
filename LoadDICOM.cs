@@ -17,12 +17,13 @@ public class LoadDICOM : MonoBehaviour
     //
     private string folderpath;
    // public string foldername;
-    public ImageStack imagestack;
+    public ImageStack2 imagestack;
     private Texture2D texture;
     private int sliceindex;
     private int oldsliceindex;
-    public SliceType sliceType;
-    private SliceType oldSliceType;
+    public ViewNumber viewNumber;
+    private ViewNumber oldviewNumber;
+    private string SliceName = "Axial";
     public GameObject displayCanvas;
     private ThreadGroupState ThreadState;
     private string DebugMessage = "Ready to Load";
@@ -32,6 +33,18 @@ public class LoadDICOM : MonoBehaviour
     public bool doneLoading;
     public bool compress;
     private Vector3 DefaultView;
+    public SliceType View1SliceType;
+    public int View1WindowCenter;
+    public int View1WindowWidth;
+    public SliceType View2SliceType;
+    public int View2WindowCenter;
+    public int View2WindowWidth;
+    public SliceType View3SliceType;
+    public int View3WindowCenter;
+    public int View3WindowWidth;
+    public SliceType View4SliceType;
+    public int View4WindowCenter;
+    public int View4WindowWidth;
 
     // Start is called before the first frame update
     void Start()
@@ -40,8 +53,9 @@ public class LoadDICOM : MonoBehaviour
         sliceindex = 0;
         oldsliceindex = 0;
         folderpath = Application.dataPath + "\\StreamingAssets";
-        oldSliceType = sliceType;
+        oldviewNumber = viewNumber;
         DefaultView = this.transform.localEulerAngles;
+        
     }
 
     // Update is called once per frame
@@ -49,9 +63,9 @@ public class LoadDICOM : MonoBehaviour
     {
         
         // Refresh texture display if slice type or slice index is changed
-        if(oldSliceType != sliceType || oldsliceindex != sliceindex)
+        if(oldviewNumber != viewNumber || oldsliceindex != sliceindex)
         {
-            oldSliceType = sliceType;
+            oldviewNumber = viewNumber;
             oldsliceindex = sliceindex;
             processingStage = 6;
         }
@@ -116,37 +130,45 @@ public class LoadDICOM : MonoBehaviour
     public void StartCreatingTextures()
     {
         DebugMessage = "Rendering...";
-        ThreadState = imagestack.StartCreatingTextures();
+        int[] windowWidths = { View1WindowWidth, View2WindowWidth, View3WindowWidth };
+        int[] windowCenters = { View1WindowCenter, View2WindowCenter, View3WindowCenter };
+
+    
+        SliceType[] SliceTypes = { View1SliceType, View2SliceType, View3SliceType };
+
+        ThreadState = imagestack.StartCreatingTextures(SliceTypes, windowWidths, windowCenters);
         ThreadState.ThreadsFinished += IncrementProcessCounter;
     }
 
     // Triggered by changing slice type or index (or at end of load file process)
     public void StartGetTexture2D()
     {
-        if (sliceType == SliceType.Transversal)
+        if (viewNumber == ViewNumber.View1)
         {
-            maxIndex = imagestack.GetMaxValue(SliceType.Transversal);
-            this.transform.localEulerAngles = new Vector3(180, 0, 0);
+            maxIndex = imagestack.GetMaxValue(ViewNumber.View1);
+            SliceName = "View 1";
         }
-        else if (sliceType == SliceType.Sagittal)
+        else if (viewNumber == ViewNumber.View2)
         {
-            maxIndex = imagestack.GetMaxValue(SliceType.Sagittal);
-            this.transform.localEulerAngles = DefaultView;
+            maxIndex = imagestack.GetMaxValue(ViewNumber.View2);
+            SliceName = "View 2";
         }
         else
         {
-            maxIndex = imagestack.GetMaxValue(SliceType.Frontal);
-            this.transform.localEulerAngles = DefaultView;
+            maxIndex = imagestack.GetMaxValue(ViewNumber.View3);
+            SliceName = "View 3";
         }
 
+        this.transform.localEulerAngles = ViewCorrection(viewNumber);
+
         doneLoading = true;
-        texture =  imagestack.GetTexture2D(sliceType, sliceindex);
+        texture =  imagestack.GetTexture2D(viewNumber, sliceindex);
         displayCanvas.GetComponent<Renderer>().material.SetTexture("_MainTex", texture);
         if (texture != null)
         {
             texture.Apply();
         }
-        DebugMessage = "Showing " + sliceType + " View, Slice No. " + sliceindex;
+        DebugMessage = "Showing " + SliceName + ", Slice No. " + sliceindex;
     }
 
     public void IncrementSliceIndex()
@@ -179,17 +201,51 @@ public class LoadDICOM : MonoBehaviour
         processingStage++;
     }
 
-    public void SetViewTransverse()
+    public void SetView1()
     {
-        sliceType = SliceType.Transversal;
+        viewNumber = ViewNumber.View1;
+        SliceName = "View 1";
+    }
+    public void SetView2()
+    {
+        viewNumber = ViewNumber.View2;
+        SliceName = "View 2";
 
     }
-    public void SetViewSagittal()
+    public void SetView3()
     {
-        sliceType = SliceType.Sagittal;
+        viewNumber = ViewNumber.View3;
+        SliceName = "View 3";
     }
-    public void SetViewFrontal()
+
+    private Vector3 ViewCorrection(ViewNumber view)
     {
-        sliceType = SliceType.Frontal;
+        SliceType type;
+        SliceType[] SliceTypes = { View1SliceType, View2SliceType, View3SliceType };
+
+        switch (view)
+        {
+            case ViewNumber.View1:
+                type = SliceTypes[0];
+                break;
+            case ViewNumber.View2:
+                type = SliceTypes[1];
+                break;
+            case ViewNumber.View3:
+                type = SliceTypes[2];
+                break;
+            default:
+                type = SliceType.Sagittal;
+                break;
+        }
+
+        if (type == SliceType.Transversal)
+        {
+            return new Vector3(180, 0, 0);
+        }
+        else
+        {
+            return DefaultView;
+        }
     }
 }
