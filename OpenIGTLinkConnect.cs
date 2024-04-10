@@ -374,7 +374,7 @@ public class OpenIGTLinkConnect : MonoBehaviour {
 
                 Vector3 translation = matrix.GetColumn(3);
                 gameObject.transform.localPosition = new Vector3(-translation.x, translation.y, translation.z);
-                Vector3 eulerAngles = matrix.GetRotation().eulerAngles;
+                Vector3 eulerAngles = GetRotation(matrix).eulerAngles;
                 gameObject.transform.localRotation = Quaternion.Euler(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
             }
         }
@@ -605,6 +605,24 @@ public class OpenIGTLinkConnect : MonoBehaviour {
         return val - (val < 58 ? 48 : 55);
         //For lowercase:
         //return val - (val < 58 ? 48 : 87);
+    }
+
+    private static Quaternion GetRotation(Matrix4x4 matrix)
+    {
+        Quaternion q = new Quaternion();
+        q.w = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
+        q.x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2;
+        q.y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2;
+        q.z = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 - matrix.m11 + matrix.m22)) / 2;
+        q.x = _copysign(q.x, matrix.m21 - matrix.m12);
+        q.y = _copysign(q.y, matrix.m02 - matrix.m20);
+        q.z = _copysign(q.z, matrix.m10 - matrix.m01);
+        return q;
+    }
+
+    private static float _copysign(float sizeval, float signval)
+    {
+        return Mathf.Sign(signval) == 1 ? Mathf.Abs(sizeval) : -Mathf.Abs(sizeval);
     }
 }
 
