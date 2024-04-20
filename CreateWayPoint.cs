@@ -14,16 +14,20 @@ public class CreateWayPoint : MonoBehaviour
     public GameObject InstrumentObject;
     public LineRenderer LineRenderer;
     public TextMeshPro DistanceText;
+    public bool Spheres;
+    public float SphereSize;
 
     // Start is called before the first frame update
     void Start()
     {
+        // Initialize List of Children
+        Children = new List<GameObject> { };
         ClickCount = 0;
 
         // Grab all child objects that have the "Waypoint" tag and shove into Children list
-        foreach (Transform child in transform)
+        foreach (Transform child in this.transform)
         {
-            if (child.tag == "Waypoint")
+            if (child.CompareTag("Waypoint"))
             {
                 Children.Add(child.gameObject);
             }
@@ -42,9 +46,18 @@ public class CreateWayPoint : MonoBehaviour
             // Set coord to current coord of instrument
             Children[ClickCount].transform.SetPositionAndRotation(InstrumentObject.transform.localPosition, InstrumentObject.transform.localRotation);
 
+            // Add Mesh object (if we want it)
+            if (Spheres)
+            {
+                Children[ClickCount] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            }
+
+            // Scale Object down
+            Children[ClickCount].transform.localScale = new Vector3(SphereSize, SphereSize, SphereSize);
+
             // Activate current object to make it visible
             Children[ClickCount].SetActive(true);
-            
+
             // Increment click count
             ClickCount++;
 

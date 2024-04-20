@@ -20,6 +20,8 @@ public class OpenIGTLinkConnect : MonoBehaviour {
     //Set from Unity editor
     public GameObject[] GameObjects;
     public int msDelay = 33;
+    private byte[][] messageDataBuffers;
+    
 
     private float totalTime = 0f;
 
@@ -55,11 +57,14 @@ public class OpenIGTLinkConnect : MonoBehaviour {
         FileInfo iniFile = new FileInfo("config.txt");
         StreamReader reader = iniFile.OpenText();
         string text = reader.ReadLine();
-        //if (text != null) ipString = text; edited KKC 21 Feb 2023
-        ipString = "192.168.0.13";
+        //if (text != null) ipString = text; edited KKC 21 Feb 2023 for debugging
+        ipString = "127.0.0.1";
 
         text = reader.ReadLine();
         if (text != null) port = int.Parse(text);
+
+        //Collection of data buffers
+        messageDataBuffers = new byte[GameObjects.Length][];
 
         // TODO: Connect on prompt rather than application start
         StartupClient();
@@ -142,11 +147,27 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                     }
                 }
 
-                // Perform all queued Receive Transforms
+
+                // Grab latest buffer data and transform objects with it (added by KKC)
+                for(int i = 0; i<GameObjects.Length; i++)
+                {
+                    if (messageDataBuffers[i] != null)
+                    {
+                        ApplyTransformToGameObject(ProcessTransformMessage(messageDataBuffers[i]), GameObjects[i]);
+                    }
+                    else
+                    {
+                        Debug.Log(String.Format("No data in buffer for GameObject: {0}; check to make sure OpenIGTLink server is running or configured correctly!", GameObjects[i].name));
+                    }
+                }
+
+                // Deprecated KKC 19 April 2024, replaced with the above.
+                /*// Perform all queued Receive Transforms
                 while (ReceiveTransformQueue.Count > 0)
                 {
+                    //Debug.Log("Trying to Dequeue");
                     ReceiveTransformQueue.Dequeue().Invoke();
-                }
+                }*/
             }
             // Reset timer
             totalTime = 0f;
@@ -267,10 +288,24 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                             // Send off to interpret data based on data type
                             if (state.dataType == StateObject.DataTypes.TRANSFORM)
                             {
-                                OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
+                                // Figure out which game object it goes with
+                                for (int i = 0; i<GameObjects.Length; i++)
+                                {
+                                    // If data matches game object name, shove into buffer. Otherwise do nothing
+                                    if (GameObjects[i].name == state.name)
+                                    {
+                                        messageDataBuffers[i] = state.byteList.ToArray();
+                                    }
+                                }
+                                
+                                
+                                
+                                
+                                // Deprecated by KKC 19 April 2024
+                                /*OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
                                 {
                                     StartCoroutine(ReceiveTransformMessage(state.byteList.ToArray(), state.name));
-                                });
+                                });*/
                             }
                         }
                         // Signal that all bytes have been received.
@@ -283,7 +318,29 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                         // Send off to interpret data based on data type
                         if (state.dataType == StateObject.DataTypes.TRANSFORM)
                         {
-                            OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
+                            // See above
+                            try
+                            {
+                                // Figure out which game object it goes with
+                                for (int i = 0; i < GameObjects.Length; i++)
+                                {
+                                    // If data matches game object name, shove into buffer. Otherwise do nothing
+                                    if (GameObjects[i].name == state.name)
+                                    {
+                                        messageDataBuffers[i] = state.byteList.GetRange(0, state.dataSize).ToArray();
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.Log(String.Format("{0} receiving {1} with total {2}", state.byteList.Count, state.dataSize, state.totalBytesRead));
+                                Debug.Log(String.Format(e.ToString()));
+                            }
+                            
+                            
+                            
+                            // Deprecated by KKC 19 April 2024
+                            /*OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
                             {
                                 try
                                 {
@@ -295,7 +352,7 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                                     Debug.Log(String.Format("{0} receiving {1} with total {2}", state.byteList.Count, state.dataSize, state.totalBytesRead));
                                     Debug.Log(String.Format(e.ToString()));
                                 }
-                            });
+                            });*/
                         }
                         state.byteList.RemoveRange(0, state.dataSize);
                         state.totalBytesRead = state.totalBytesRead - state.dataSize;
@@ -323,12 +380,17 @@ public class OpenIGTLinkConnect : MonoBehaviour {
         }
     }
 
-    IEnumerator ReceiveTransformMessage(byte[] data, string transformName)
+
+    // DEPRECATED BY KKC 19 APRIL 2024
+    /*IEnumerator ReceiveTransformMessage(byte[] data, string transformName)
     {
         // Find Game Objects with Transform Name and determine if they should be updated
         string objectName;
-        foreach (GameObject gameObject in GameObjects)
+        
+        //foreach (GameObject gameObject in GameObjects)
         {
+            GameObject gameObject = GameObjects[1];
+            
             // Could be a bit more efficient
             if (gameObject.name.Length > 20){
                 objectName = gameObject.name.Substring(0, 20);
@@ -340,6 +402,9 @@ public class OpenIGTLinkConnect : MonoBehaviour {
 
             if (objectName.Equals(transformName) & gameObject.GetComponent<OpenIGTLinkFlag>().ReceiveTransform)
             {
+                // -----------------------------------------------------------------------------------------------------------DEBUG
+                //Debug.Log("Working on Queue, "+ objectName);
+                
                 // Transform Matrix starts from byte 58 until 106
                 // Extract transform matrix
                 byte[] matrixBytes = new byte[4];
@@ -376,11 +441,62 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                 gameObject.transform.localPosition = new Vector3(-translation.x, translation.y, translation.z);
                 Vector3 eulerAngles = GetRotation(matrix).eulerAngles;
                 gameObject.transform.localRotation = Quaternion.Euler(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+
             }
+            //Debug.Log("Interating OBjects!@");
+            *//*if(ObjectTracker == numberObjects - 1)
+            {
+                ObjectTracker = 0;
+            }
+            else
+            {
+                ObjectTracker++;
+            }*//*
         }
         // Place this inside the loop if you only want to perform one loop per update cycle
         yield return null;
+    }*/
+
+
+
+    // Process packet from data buffer (added by KKC 19 April 2024)
+    private Matrix4x4 ProcessTransformMessage(byte[] data)
+    {
+        byte[] matrixBytes = new byte[4];
+        float[] m = new float[12];
+        for (int i = 0; i < 12; i++)
+        {
+            Buffer.BlockCopy(data, 58 + i * 4, matrixBytes, 0, 4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(matrixBytes);
+            }
+
+            m[i] = BitConverter.ToSingle(matrixBytes, 0);
+
+        }
+
+        // Slicer units are in millimeters, Unity is in meters, so convert accordingly
+        // Definition for Matrix4x4 is extended from SteamVR
+        Matrix4x4 matrix = new Matrix4x4();
+        matrix.SetRow(0, new Vector4(m[0], m[3], m[6], m[9] / scaleMultiplier));
+        matrix.SetRow(1, new Vector4(m[1], m[4], m[7], m[10] / scaleMultiplier));
+        matrix.SetRow(2, new Vector4(m[2], m[5], m[8], m[11] / scaleMultiplier));
+        matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+        return matrix;
     }
+
+
+    // Apply transform information to GameObject
+    public void ApplyTransformToGameObject(Matrix4x4 matrix, GameObject gameObject)
+    {
+        Vector3 translation = matrix.GetColumn(3);
+        Vector3 rotation = matrix.rotation.eulerAngles;
+        gameObject.transform.localPosition = new Vector3(-translation.x, translation.y, translation.z);
+        gameObject.transform.localRotation = Quaternion.Euler(rotation.x, -rotation.y, -rotation.z);
+    }
+
 
     // -------------------- Send -------------------- 
     private void Send(Socket client, byte[] msg)

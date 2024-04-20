@@ -8,6 +8,7 @@ public class MeasureDistance : MonoBehaviour
     public GameObject InstrumentObjectLeft;
     public GameObject InstrumentObjectRight;
     public TextMeshPro OutputTextMesh;
+    public int ScalingFactor;
 
     // Start is called before the first frame update
     void Start()
@@ -19,7 +20,7 @@ public class MeasureDistance : MonoBehaviour
     void Update()
     {
         // Measure distance
-        float distance = Vector3.Distance(InstrumentObjectLeft.transform.position, InstrumentObjectRight.transform.position);
+        float distance = Vector3.Distance(InstrumentObjectLeft.transform.position, InstrumentObjectRight.transform.position)*ScalingFactor;
         
         // Display distance
         OutputTextMesh.text = distance.ToString("#.00");
