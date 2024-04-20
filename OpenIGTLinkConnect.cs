@@ -292,7 +292,7 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                                 for (int i = 0; i<GameObjects.Length; i++)
                                 {
                                     // If data matches game object name, shove into buffer. Otherwise do nothing
-                                    if (GameObjects[i].name == state.name)
+                                    if (GameObjects[i].CompareTag(state.name))
                                     {
                                         messageDataBuffers[i] = state.byteList.ToArray();
                                     }
@@ -325,7 +325,7 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                                 for (int i = 0; i < GameObjects.Length; i++)
                                 {
                                     // If data matches game object name, shove into buffer. Otherwise do nothing
-                                    if (GameObjects[i].name == state.name)
+                                    if (GameObjects[i].CompareTag(state.name))
                                     {
                                         messageDataBuffers[i] = state.byteList.GetRange(0, state.dataSize).ToArray();
                                     }

@@ -46,15 +46,6 @@ public class CreateWayPoint : MonoBehaviour
             // Set coord to current coord of instrument
             Children[ClickCount].transform.SetPositionAndRotation(InstrumentObject.transform.localPosition, InstrumentObject.transform.localRotation);
 
-            // Add Mesh object (if we want it)
-            if (Spheres)
-            {
-                Children[ClickCount] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            }
-
-            // Scale Object down
-            Children[ClickCount].transform.localScale = new Vector3(SphereSize, SphereSize, SphereSize);
-
             // Activate current object to make it visible
             Children[ClickCount].SetActive(true);
 
@@ -69,9 +60,21 @@ public class CreateWayPoint : MonoBehaviour
             if (ClickCount > numberChildren)
             {
                 var newChild = new GameObject($"Sphere ({numberChildren + 1})");
+                
+                // If we want it to have a sphere mesh
+                if (Spheres)
+                {
+                    newChild = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    newChild.name = $"Sphere ({numberChildren + 1})";
+                }
+
                 newChild.SetActive(false);
                 newChild.transform.SetParent(this.transform, false);
                 newChild.tag = "Waypoint";
+
+                // Scale Object down (we do this even if there's no mesh, just to keep things consistent
+                newChild.transform.localScale = new Vector3(SphereSize, SphereSize, SphereSize);
+
                 //Instantiate(newChild, this.transform);
                 Children.Add(newChild);
                 numberChildren = Children.Count;
@@ -85,6 +88,10 @@ public class CreateWayPoint : MonoBehaviour
                 // Deactivate previous object so user can't see it and retract click count
                 ClickCount = ClickCount - 1;
                 Children[ClickCount].SetActive(false);
+            }
+            else
+            {
+                Debug.Log("No waypoints to erase!");
             }
             
         }
