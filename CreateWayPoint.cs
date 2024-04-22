@@ -6,7 +6,7 @@ using TMPro;
 public class CreateWayPoint : MonoBehaviour
 {
 
-    private int ClickCount;
+    public int ClickCount;
     private List<GameObject> Children;
     private int numberChildren;
     public string setKey;
@@ -16,6 +16,7 @@ public class CreateWayPoint : MonoBehaviour
     public TextMeshPro DistanceText;
     public bool Spheres;
     public float SphereSize;
+    public int ScalingFactor;
 
     // Start is called before the first frame update
     void Start()
@@ -43,24 +44,11 @@ public class CreateWayPoint : MonoBehaviour
     {
         if (Input.GetKeyDown(setKey))
         {
-            // Set coord to current coord of instrument
-            Children[ClickCount].transform.SetPositionAndRotation(InstrumentObject.transform.localPosition, InstrumentObject.transform.localRotation);
-
-            // Activate current object to make it visible
-            Children[ClickCount].SetActive(true);
-
-            // Increment click count
-            ClickCount++;
-
-            // Add to Line Renderer
-            LineRenderer.positionCount = ClickCount;
-            LineRenderer.SetPosition(ClickCount-1, Children[ClickCount-1].transform.position);
-
             // If we're out of children, create new child
-            if (ClickCount > numberChildren)
+            if (ClickCount+1 > numberChildren)
             {
                 var newChild = new GameObject($"Sphere ({numberChildren + 1})");
-                
+
                 // If we want it to have a sphere mesh
                 if (Spheres)
                 {
@@ -79,6 +67,19 @@ public class CreateWayPoint : MonoBehaviour
                 Children.Add(newChild);
                 numberChildren = Children.Count;
             }
+
+            // Set coord to current coord of instrument
+            Children[ClickCount].transform.SetPositionAndRotation(InstrumentObject.transform.localPosition, InstrumentObject.transform.localRotation);
+
+            // Activate current object to make it visible
+            Children[ClickCount].SetActive(true);
+
+            // Increment click count
+            ClickCount++;
+
+            // Add to Line Renderer
+            LineRenderer.positionCount = ClickCount;
+            LineRenderer.SetPosition(ClickCount-1, Children[ClickCount-1].transform.position); 
         }
 
         if (Input.GetKeyDown(eraseKey))
@@ -88,6 +89,18 @@ public class CreateWayPoint : MonoBehaviour
                 // Deactivate previous object so user can't see it and retract click count
                 ClickCount = ClickCount - 1;
                 Children[ClickCount].SetActive(false);
+
+                // Remove from Line renderer
+                LineRenderer.positionCount = ClickCount;
+
+                // Delete extra objects
+                if (ClickCount > 1)
+                {
+                    Destroy(Children[ClickCount]);
+                    Children.Remove(Children[ClickCount]);
+                    numberChildren = numberChildren - 1;
+                }
+                
             }
             else
             {
@@ -101,12 +114,16 @@ public class CreateWayPoint : MonoBehaviour
         {
             float totaldistance = 0;
             for (int i = 1; i < ClickCount; i++){
-                totaldistance = totaldistance + Mathf.Abs(Vector3.Distance(Children[i].transform.position, Children[i - 1].transform.position));
+                totaldistance = totaldistance + Mathf.Abs(Vector3.Distance(Children[i].transform.position, Children[i - 1].transform.position))*ScalingFactor;
             }
 
             // Display perimeter
             DistanceText.transform.position = Vector3.Lerp(Children[0].transform.position, Children[ClickCount-1].transform.position, 0.5f);
             DistanceText.text = totaldistance.ToString("#.00");
+        }
+        else
+        {
+            DistanceText.text = "";
         }
     }
 

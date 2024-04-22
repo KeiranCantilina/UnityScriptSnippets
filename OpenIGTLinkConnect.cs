@@ -21,6 +21,7 @@ public class OpenIGTLinkConnect : MonoBehaviour {
     public GameObject[] GameObjects;
     public int msDelay = 33;
     private byte[][] messageDataBuffers;
+    private string[] GameObjectTags;
     
 
     private float totalTime = 0f;
@@ -66,8 +67,19 @@ public class OpenIGTLinkConnect : MonoBehaviour {
         //Collection of data buffers
         messageDataBuffers = new byte[GameObjects.Length][];
 
+        // Get Tags and put in tag list
+        GameObjectTags = new string[GameObjects.Length];
+        for (int i= 0; i<GameObjects.Length; i++)
+        {
+            GameObjectTags[i] = GameObjects[i].tag;
+            Debug.Log(String.Format("Tag {0} = {1}", i, GameObjectTags[i]));
+        }
+
         // TODO: Connect on prompt rather than application start
         StartupClient();
+
+        
+
     }
 
     private void StartupClient()
@@ -292,7 +304,8 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                                 for (int i = 0; i<GameObjects.Length; i++)
                                 {
                                     // If data matches game object name, shove into buffer. Otherwise do nothing
-                                    if (GameObjects[i].CompareTag(state.name))
+                                    //if (GameObjects[i].CompareTag(state.name))
+                                    if (GameObjectTags[i].Equals(state.name))
                                     {
                                         messageDataBuffers[i] = state.byteList.ToArray();
                                     }
@@ -325,7 +338,8 @@ public class OpenIGTLinkConnect : MonoBehaviour {
                                 for (int i = 0; i < GameObjects.Length; i++)
                                 {
                                     // If data matches game object name, shove into buffer. Otherwise do nothing
-                                    if (GameObjects[i].CompareTag(state.name))
+                                    //if (GameObjects[i].CompareTag(state.name))
+                                    if (GameObjectTags[i].Equals(state.name))
                                     {
                                         messageDataBuffers[i] = state.byteList.GetRange(0, state.dataSize).ToArray();
                                     }
