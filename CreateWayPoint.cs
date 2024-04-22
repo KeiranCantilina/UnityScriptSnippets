@@ -17,6 +17,8 @@ public class CreateWayPoint : MonoBehaviour
     public bool Spheres;
     public float SphereSize;
     public int ScalingFactor;
+    public float TextVerticalOffset;
+    public float TextHorizontalOffset;
 
     // Start is called before the first frame update
     void Start()
@@ -118,7 +120,10 @@ public class CreateWayPoint : MonoBehaviour
             }
 
             // Display perimeter
-            DistanceText.transform.position = Vector3.Lerp(Children[0].transform.position, Children[ClickCount-1].transform.position, 0.5f);
+            Vector3 DisplayPosition = Vector3.Lerp(Children[0].transform.position, Children[ClickCount - 1].transform.position, 0.5f);
+            DisplayPosition.y = DisplayPosition.y + TextVerticalOffset;
+            DisplayPosition.x = DisplayPosition.x + TextHorizontalOffset;
+            DistanceText.transform.position = DisplayPosition;
             DistanceText.text = totaldistance.ToString("#.00");
         }
         else
