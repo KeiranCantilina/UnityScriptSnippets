@@ -2,24 +2,24 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="PlusServer: NDI Aurora tracker"
+      Name="PlusServer: MIMI Project"
       Description="Broadcasting tool tracking data through OpenIGTLink
-Tracking a single needle.
-The computer needs to be on the same local network as Aurora SCU unit. The needle has to be plugged into the first slot"
+Tracking two instruments.
+The computer needs to be on the same local network as Aurora SCU unit. The instruments have to be plugged into the first two slots"
     />
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
-      SerialPort="4"
+      SerialPort="7"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Lefttool" PortName="0" />
-		<DataSource Type="Tool" Id="Righttool" PortName="1" />
+        <DataSource Type="Tool" Id="Left" PortName="0" RomFile="D:\Users\Keiran\PlusApp-2.8.0.20191105-Win64\config\NdiToolDefinitions\LeftToolPivot.rom"/>
+		<DataSource Type="Tool" Id="Right" PortName="1" RomFile="D:\Users\Keiran\PlusApp-2.8.0.20191105-Win64\config\NdiToolDefinitions\RightToolPivot.rom"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
-          <DataSource Id="Lefttool" />
-		  <DataSource Id="Righttool" />
+          <DataSource Id="Left" />
+		  <DataSource Id="Right" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -37,8 +37,8 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="LefttoolToTracker" />
-		<Transform Name="RighttoolToTracker" />
+        <Transform Name="LeftToTracker" />
+		<Transform Name="RightToTracker" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
