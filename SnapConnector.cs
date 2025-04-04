@@ -39,26 +39,24 @@ public class SnapConnector : MonoBehaviour
         isBeingDragged = DraggingScript.getDraggingStatus();
         if (triggered == true && !isBeingDragged)
         {
-            
-
+            // Snap!
             var step = snapping_speed * Time.deltaTime;
             myParent.transform.position = Vector3.MoveTowards(myParent.transform.position, SnappingParent.transform.position + SnappingParent.transform.TransformDirection(SnapOffset), step);
             myParent.transform.rotation = Quaternion.RotateTowards(myParent.transform.rotation, SnappingParent.transform.rotation, step*100);
-            //this.transform.localEulerAngles = Vector3.RotateTowards(this.transform.localEulerAngles, SnappingParent.transform.eulerAngles), step * 100, step * 100);
-            // this part should rotate (in world orientation) to the target's orientation plus an offset in target local coordinate system converted to world rotations.
 
-            
             if(Vector3.Distance(myParent.transform.position, SnappingParent.transform.position) < 0.001f)
             {
                 snapped = true;
 
             }
-            
         }
         if(triggered == true && snapped == false && isBeingDragged)
         {
             //Make objects face eachother
-            myParent.transform.LookAt(2*myParent.transform.position - SnappingParent.transform.position);
+            var step = snapping_speed * Time.deltaTime;
+            //myParent.transform.LookAt(2*myParent.transform.position - SnappingParent.transform.position); // For instantaneous LookAt
+            Quaternion LookatRotation = Quaternion.LookRotation(2 * myParent.transform.position - SnappingParent.transform.position); // For animated LookAt
+            myParent.transform.rotation = Quaternion.RotateTowards(myParent.transform.rotation,LookatRotation, step*25);
         }
     }
 
