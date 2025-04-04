@@ -1,3 +1,6 @@
+// Assumes objects that will be snapped together have "forward" defined as the positive Z axis. If not, use the "RotationOffset" property to adjust.
+// Written by Keiran Cantilina, 4-April-2025
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +11,7 @@ using UnityEngine;
 
 public class SnapConnector : MonoBehaviour
 {
-
+    public bool isFemaleConnector;
     private bool snapped = false;
     private GameObject SnappingParent;
     private GameObject myParent;
@@ -17,7 +20,7 @@ public class SnapConnector : MonoBehaviour
     public Vector3 RotationOffset;
     private Quaternion savedOrientation;
     private bool isBeingDragged = false;
-    public DevLocker.PhysicsUtils.DragRigidbodyBetter DraggingScript;
+    private DevLocker.PhysicsUtils.DragRigidbodyBetter DraggingScript;
     private bool triggered = false;
     public float snapping_speed = 1.0f;
     private string allowableSnappingTag;
@@ -27,6 +30,7 @@ public class SnapConnector : MonoBehaviour
     {
         allowableSnappingTag = this.tag;
         myParent = this.transform.parent.gameObject.transform.parent.gameObject;
+        DraggingScript = this.transform.parent.gameObject.GetComponent<DevLocker.PhysicsUtils.DragRigidbodyBetter>();
     }
 
     // Update is called once per frame
@@ -61,7 +65,7 @@ public class SnapConnector : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Check tags to see if we need to reject collider
-        if (other.CompareTag(allowableSnappingTag))
+        if (!isFemaleConnector && other.CompareTag(allowableSnappingTag))
         {
             UnityEngine.Debug.Log("Triggered!\n");
             triggered = true;
@@ -74,7 +78,7 @@ public class SnapConnector : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         // Check tags to see if we need to reject collider
-        if (other.CompareTag(allowableSnappingTag))
+        if (!isFemaleConnector && other.CompareTag(allowableSnappingTag))
         {
             //this.transform.rotation = savedOrientation;
             UnityEngine.Debug.Log("Collider Exit\n");
