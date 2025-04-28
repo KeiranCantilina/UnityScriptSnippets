@@ -34,20 +34,23 @@ namespace InverseKinematics
         // Start is called before the first frame update
         void Start()
         {
-            // for auto-finding joints by name
-            /*for (int i = 1; i-1 < joint.Length; i++)
+            // For auto-finding joints by name
+            for (int i = 1; i - 1 < joint.Length; i++)
             {
-                joint[i] = GameObject.Find("link_" + i.ToString());
-            }*/
+                joint[i] = GameObject.Find("link_" + i.ToString()).GetComponent<ArticulationBody>();
+            }
 
 
-            // Position of each segment relative to its parent
+            // Position of each robot segment relative to its parent
             for (int i = 0; i < dim.Length - 1; i++)
             {
                 dim[i] = joint[i + 1].transform.localPosition;
             }
 
-            dim[dim.Length - 1] = Target_Object.transform.localPosition;
+            // Position of IK target relative to the last robot link
+            // TO DO: test this, if it breaks, use commented out part.
+            //dim[dim.Length - 1] = Target_Object.transform.localPosition;
+            dim[dim.Length - 1] = joint[joint.Length-1].transform.InverseTransformPoint(Target_Object.transform.position);
 
             // Axis directions
             axis[0] = new Vector3(0f, -1f, 0f); // This is right
@@ -65,7 +68,7 @@ namespace InverseKinematics
             angle[4] = prevAngle[4] = 0f;
             angle[5] = prevAngle[5] = 0f;
 
-            // limits of joint rotation
+            // Get Joint Limits
             for (int i = 0; i < joint.Length; i++) // You can set different values for each joint.
             {
                 minAngle[i] = joint[i].xDrive.lowerLimit;
@@ -80,7 +83,8 @@ namespace InverseKinematics
             
         }
 
-        float[] CalcIK(Transform input)    // TO DO: Remove all articulation body drive calls and replace slider references with a public get/set cartesian target method
+        // Method to calculate Inverse Kinematics
+        float[] CalcIK(Transform input)    
         {
             pos.x = input.position.x;
             pos.y = input.position.y;
@@ -91,7 +95,7 @@ namespace InverseKinematics
 
             int count = 0;
             outOfLimit = false;
-            for (int i = 0; i < 100; i++)   // iteration
+            for (int i = 0; i < 100; i++)   // Iterate maz 99 times to converge on solution
             {
                 count = i;
                 // find position/pose of hand
