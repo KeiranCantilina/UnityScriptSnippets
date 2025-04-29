@@ -7,37 +7,46 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace InverseKinematics
 {
-    public class GenericIKCalculator : MonoBehaviour
+    public static class GenericIKCalculator
     {
         // robot
         //private GameObject[] joint = new GameObject[6];
-        public ArticulationBody[] joint = new ArticulationBody[6];
-        public GameObject Target_Object;
+        public static ArticulationBody[] joint;
+        public static GameObject Target_Object;
         //private GameObject[] arm = new GameObject[6];
         //private float[] armL = new float[6];
         //private Vector3[] angle = new Vector3[6];
-        private float[] angle = new float[6];
-        private float[] prevAngle = new float[6];
-        private Vector3[] dim = new Vector3[6];             // local dimensions of each joint
-        private Vector3[] point = new Vector3[7];           // world position of joint end
-        public Vector3[] axis = new Vector3[6];            // local direction of each axis
-        private Quaternion[] rotation = new Quaternion[6];  // local rotation(quaternion) of joint relative to its parent
-        private Quaternion[] wRotation = new Quaternion[6]; // world rotation(quaternion) of joint
-        private Vector3 pos;                                // reference(target) position
-        private Vector3 rot;                                // reference(target) pose
-        private float lambda = 0.1f;
-        private float[] minAngle = new float[6];            // limits of joint rotatation
-        private float[] maxAngle = new float[6];
-        private bool outOfLimit;
+        private static float[] angle;
+        private static float[] prevAngle;
+        private static Vector3[] dim;             // local dimensions of each joint
+        private static Vector3[] point;           // world position of joint end
+        public static Vector3[] axis;            // local direction of each axis
+        private static Quaternion[] rotation;  // local rotation(quaternion) of joint relative to its parent
+        private static Quaternion[] wRotation; // world rotation(quaternion) of joint
+        private static Vector3 pos;                                // reference(target) position
+        private static Vector3 rot;                                // reference(target) pose
+        private static float lambda = 0.1f;
+        private static float[] minAngle;            // limits of joint rotatation
+        private static float[] maxAngle;
+        private static bool outOfLimit;
 
 
         // Start is called before the first frame update
-        void Start()
+        static public float[] RunIK(Transform input, GameObject targetBody, ArticulationBody[] robotJoints, Vector3[] axisDirections, float[] previousJointPositions)
         {
+            // Process input
+            pos.x = input.position.x;
+            pos.y = input.position.y;
+            pos.z = input.position.z;
+            rot.x = input.eulerAngles[0];
+            rot.y = input.eulerAngles[1];
+            rot.z = input.eulerAngles[2];
+            Target_Object = targetBody;
+
             // For auto-finding joints by name
             for (int i = 1; i - 1 < joint.Length; i++)
             {
-                joint[i] = GameObject.Find("link_" + i.ToString()).GetComponent<ArticulationBody>();
+                joint[i] = robotJoints[i];
             }
 
 
@@ -53,20 +62,30 @@ namespace InverseKinematics
             dim[dim.Length - 1] = joint[joint.Length-1].transform.InverseTransformPoint(Target_Object.transform.position);
 
             // Axis directions
-            axis[0] = new Vector3(0f, -1f, 0f); // This is right
+            /*axis[0] = new Vector3(0f, -1f, 0f); // This is right
             axis[1] = new Vector3(1f, 0f, 0f); // This is right
             axis[2] = new Vector3(1f, 0f, 0f); // This is right
             axis[3] = new Vector3(0f, 0f, -1f); // This is right
             axis[4] = new Vector3(1f, 0f, 0f); // This is right
-            axis[5] = new Vector3(0f, 0f, -1f); // This is right
+            axis[5] = new Vector3(0f, 0f, -1f); // This is right*/
+            // For auto-finding joints by name
+            for (int i = 0; i < joint.Length; i++)
+            {
+                axis[i] = axisDirections[i];
+            }
 
             // Initial Pose Angle TO DO: Make this set to what the current pose angle is
-            angle[0] = prevAngle[0] = 0f;
+            /*angle[0] = prevAngle[0] = 0f;
             angle[1] = prevAngle[1] = 0f;
             angle[2] = prevAngle[2] = 0f;
             angle[3] = prevAngle[3] = 0f;
             angle[4] = prevAngle[4] = 0f;
-            angle[5] = prevAngle[5] = 0f;
+            angle[5] = prevAngle[5] = 0f;*/
+
+            for (int i = 0; i < joint.Length; i++)
+            {
+                prevAngle[i] = previousJointPositions[i];
+            }
 
             // Get Joint Limits
             for (int i = 0; i < joint.Length; i++) // You can set different values for each joint.
@@ -75,30 +94,20 @@ namespace InverseKinematics
                 maxAngle[i] = joint[i].xDrive.upperLimit;
             }
 
+            return CalcIK();
+
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            
-        }
 
         // Method to calculate Inverse Kinematics
-        float[] CalcIK(Transform input)    
+        private static float[] CalcIK()    
         {
-            pos.x = input.position.x;
-            pos.y = input.position.y;
-            pos.z = input.position.z;
-            rot.x = input.eulerAngles[0];
-            rot.y = input.eulerAngles[1];
-            rot.z = input.eulerAngles[2];
-
             int count = 0;
             outOfLimit = false;
             for (int i = 0; i < 100; i++)   // Iterate maz 99 times to converge on solution
             {
                 count = i;
-                // find position/pose of hand
+                // find position/pose of hand (Forward Kinematics)
                 ForwardKinematics();
 
                 // calculate position/pose error from reference
@@ -147,7 +156,7 @@ namespace InverseKinematics
             }
         }
 
-        void ForwardKinematics()
+        private static void ForwardKinematics()
         {
             point[0] = joint[0].transform.position;
             wRotation[0] = Quaternion.AngleAxis(angle[0], axis[0]);
@@ -160,7 +169,7 @@ namespace InverseKinematics
             point[joint.Length] = wRotation[joint.Length - 1] * dim[joint.Length - 1] + point[joint.Length - 1];
         }
 
-        DenseMatrix CalcErr()
+        private static DenseMatrix CalcErr()
         {
             // position error
             Vector3 perr = pos - point[6];
@@ -186,7 +195,7 @@ namespace InverseKinematics
             return err;
         }
 
-        DenseMatrix CalcJacobian()
+        private static DenseMatrix CalcJacobian()
         {
             Vector3 w0 = wRotation[0] * axis[0];
             Vector3 w1 = wRotation[1] * axis[1];
@@ -213,7 +222,7 @@ namespace InverseKinematics
             return J;
         }
 
-        bool IsOutOfLimit()
+        public static bool IsOutOfLimit()
         {
             return outOfLimit;
         }
