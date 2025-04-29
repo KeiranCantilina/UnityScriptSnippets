@@ -35,29 +35,33 @@ public class GenericRobotController : MonoBehaviour
         // For auto-finding joints by name
         if (AutoFindJoints)
         {
+            joints = new ArticulationBody[numberOfJoints];
             for (int i = 1; i - 1 < numberOfJoints; i++)
             {
                 joints[i] = GameObject.Find("link_" + i.ToString()).GetComponent<ArticulationBody>();
-                drives[i] = joints[i].xDrive;
             }
         }
         else
         {
-            for (int i = 0; i < robotParts.Length; i++)
-            {
-                joints[i] = robotParts[i];
-                drives[i] = joints[i].xDrive;
-            }
+            joints = robotParts;
         }
 
 
         // Axis directions THIS IS TEMPORARILY HARD CODED
+        axisDirections = new Vector3[joints.Length];
         axisDirections[0] = new Vector3(0f, -1f, 0f); // This is right
         axisDirections[1] = new Vector3(1f, 0f, 0f); // This is right
         axisDirections[2] = new Vector3(1f, 0f, 0f); // This is right
         axisDirections[3] = new Vector3(0f, 0f, -1f); // This is right
         axisDirections[4] = new Vector3(1f, 0f, 0f); // This is right
         axisDirections[5] = new Vector3(0f, 0f, -1f); // This is right
+
+        // get current robot joint positions
+        oldAngles = new float[joints.Length];
+        for (int i = 0; i < joints.Length; i++)
+        {
+            oldAngles[i] = joints[i].jointPosition[0];
+        }
 
 
     }
@@ -67,28 +71,30 @@ public class GenericRobotController : MonoBehaviour
     {
         if (moveRobot)
         {
-            // get current robot joint positions
-            for (int i=0; i<joints.Length; i++)
-            {
-                oldAngles[i] = joints[i].jointPosition[0];
-            }
-
             // feed robot joints, axis angles, and dragger position to Ik calculator, get joints
             newAngles = InverseKinematics.GenericIKCalculator.RunIK(targetCartesian, InverseKinematicsTarget, joints, axisDirections, oldAngles);
 
+            //DEBUG
+            //UnityEngine.Debug.Log(newAngles[1]);
+            
             // Feed joints to articulationbody drives
             for (int i = 0; i < joints.Length; i++)
             {
-                drives[i].target = newAngles[i];
+                var drive = joints[i].xDrive;
+                drive.target = newAngles[i];
+                joints[i].xDrive = drive;
             }
+            
             // Rinse and repeat
+            oldAngles = newAngles;
         }
         moveRobot = false;
     }
 
-    public void MoveRobot(Transform target)
+    public void MoveRobot(Vector3 targetPos, Vector3 targetRot)
     {
-        targetCartesian = target;
+        targetCartesian.position = targetPos;
+        targetCartesian.eulerAngles = targetRot;
         moveRobot = true;
     }
 }

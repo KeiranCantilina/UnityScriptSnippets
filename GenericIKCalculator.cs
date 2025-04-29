@@ -44,11 +44,15 @@ namespace InverseKinematics
             Target_Object = targetBody;
 
             // For auto-finding joints by name
-            for (int i = 1; i - 1 < joint.Length; i++)
-            {
-                joint[i] = robotJoints[i];
-            }
+            joint = robotJoints;
 
+            // now we know number of dof from joint, so we can define some stuff.
+            dim = new Vector3[joint.Length];
+            point = new Vector3[joint.Length + 1];
+            axis = new Vector3[joint.Length];
+            rotation = new Quaternion[joint.Length];
+            wRotation = new Quaternion[joint.Length];
+            angle = new float[joint.Length];
 
             // Position of each robot segment relative to its parent
             for (int i = 0; i < dim.Length - 1; i++)
@@ -69,10 +73,8 @@ namespace InverseKinematics
             axis[4] = new Vector3(1f, 0f, 0f); // This is right
             axis[5] = new Vector3(0f, 0f, -1f); // This is right*/
             // For auto-finding joints by name
-            for (int i = 0; i < joint.Length; i++)
-            {
-                axis[i] = axisDirections[i];
-            }
+            axis = axisDirections;
+            
 
             // Initial Pose Angle TO DO: Make this set to what the current pose angle is
             /*angle[0] = prevAngle[0] = 0f;
@@ -82,12 +84,12 @@ namespace InverseKinematics
             angle[4] = prevAngle[4] = 0f;
             angle[5] = prevAngle[5] = 0f;*/
 
-            for (int i = 0; i < joint.Length; i++)
-            {
-                prevAngle[i] = previousJointPositions[i];
-            }
+            prevAngle = previousJointPositions;
+
 
             // Get Joint Limits
+            minAngle = new float[joint.Length];
+            maxAngle = new float[joint.Length];
             for (int i = 0; i < joint.Length; i++) // You can set different values for each joint.
             {
                 minAngle[i] = joint[i].xDrive.lowerLimit;
