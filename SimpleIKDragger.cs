@@ -13,6 +13,7 @@ public class SimpleIKDragger : MonoBehaviour
     public GenericRobotController robotController;
     private Vector3 targetPos;
     private Vector3 targetRot;
+    public Vector3 Orientation;
 
 
     void OnMouseDown()
@@ -29,7 +30,7 @@ public class SimpleIKDragger : MonoBehaviour
 
         curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
         targetPos = curPosition;
-        targetRot = new Vector3(0,0,0);
+        targetRot = Orientation;
         robotController.MoveRobot(targetPos, targetRot);
     }
 

@@ -7,7 +7,7 @@ public class GenericRobotController : MonoBehaviour
 {
     // Class Properties
     public bool AutoFindJoints;
-    public int numberOfJoints;
+    private int numberOfJoints;
     public ArticulationBody[] robotParts;
     public GameObject InverseKinematicsTarget;
     public Transform targetCartesian;
@@ -16,6 +16,7 @@ public class GenericRobotController : MonoBehaviour
     private ArticulationBody[] joints;
     private ArticulationDrive[] drives;
     public Vector3[] axisDirections;
+    private ArticulationBody base_joint;
 
 
     // Misc vars
@@ -32,20 +33,26 @@ public class GenericRobotController : MonoBehaviour
     {
         moveRobot = false;
         // get robot
+        base_joint = this.transform.Find("base_link").GetComponent<ArticulationBody>();
+
         // For auto-finding joints by name
         if (AutoFindJoints)
         {
+            numberOfJoints = base_joint.GetJointPositions(new List<float>());
             joints = new ArticulationBody[numberOfJoints];
             for (int i = 1; i - 1 < numberOfJoints; i++)
             {
-                joints[i] = GameObject.Find("link_" + i.ToString()).GetComponent<ArticulationBody>();
-            }
+                joints[i-1] = GameObject.Find("link_" + i.ToString()).GetComponent<ArticulationBody>();
+            }   
         }
         else
         {
             joints = robotParts;
         }
 
+        // TO DO: Test use of ArticulationBody.anchorRotation for maybe figuring out axis directions?
+        
+        UnityEngine.Debug.Log(string.Join(";", joints[0].anchorRotation));
 
         // Axis directions THIS IS TEMPORARILY HARD CODED
         axisDirections = new Vector3[joints.Length];
