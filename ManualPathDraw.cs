@@ -8,9 +8,6 @@ public class ManualPathDraw : MonoBehaviour
     private Vector3 startScreenPoint;
     private Vector3 currentMouseScreenPosition;
     private Vector3 currentMouseWorldPosition;
-    private Vector3 rectPoint2;
-    private Vector3 rectPoint4;
-    private Vector3[] worldCorners;
     private List<Vector3> screenWaypoints;
     private List<Vector3> worldWaypoints;
     private List<Ray> cameraRays;
@@ -21,7 +18,7 @@ public class ManualPathDraw : MonoBehaviour
     private Material mat;
     public GameObject targetObject;
     private Ray[] rays;
-    private Quaternion[] normals_orientations;
+    private List<Quaternion> normals_orientations;
 
     // Line renderer properties
     private float offset_from_clipping_plane = 0.1f;
@@ -39,6 +36,7 @@ public class ManualPathDraw : MonoBehaviour
         worldWaypoints = new List<Vector3>();
         cameraRays = new List<Ray>();
         pointNormals = new List<Vector3>();
+        normals_orientations = new List<Quaternion>();
 
         // Create line renderer
         lineRenderer = this.gameObject.AddComponent<LineRenderer>();
@@ -84,7 +82,7 @@ public class ManualPathDraw : MonoBehaviour
         // collect point in screen space
         startScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane + offset_from_clipping_plane);
         startWorldPoint = Camera.main.ScreenToWorldPoint(startScreenPoint);
-        UnityEngine.Debug.Log("Click!");
+        //UnityEngine.Debug.Log("Click!");
 
         // add to list of points in screen space
         screenWaypoints.Add(startScreenPoint);
@@ -152,6 +150,7 @@ public class ManualPathDraw : MonoBehaviour
             {
                 projectedWaypoints.Add(hit.point);
                 pointNormals.Add(hit.normal);
+                normals_orientations.Add(Quaternion.LookRotation(pointNormals[pointNormals.Count-1]));
             }
             else
             {
@@ -170,5 +169,31 @@ public class ManualPathDraw : MonoBehaviour
     void OnMouseClickDrag()
     {
         // Do nothing
+    }
+
+    // Invoked through external script
+    public void Undo()
+    {
+        projectedWaypoints.RemoveAt(projectedWaypoints.Count-1);
+        pointNormals.RemoveAt(pointNormals.Count-1);
+        cameraRays.RemoveAt(cameraRays.Count-1);
+        screenWaypoints.RemoveAt(screenWaypoints.Count-1);
+        worldWaypoints.RemoveAt(worldWaypoints.Count-1);
+        normals_orientations.RemoveAt(normals_orientations.Count-1);
+
+        lineRenderer.positionCount = projectedWaypoints.Count;
+        lineRenderer.SetPositions(projectedWaypoints.ToArray());
+    }
+
+    public void Clear()
+    {
+        projectedWaypoints.Clear();
+        pointNormals.Clear();
+        cameraRays.Clear();
+        screenWaypoints.Clear();
+        worldWaypoints.Clear(); 
+        normals_orientations.Clear();
+
+        lineRenderer.positionCount = 0;
     }
 }
