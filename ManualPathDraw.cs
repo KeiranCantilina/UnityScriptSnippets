@@ -17,7 +17,6 @@ public class ManualPathDraw : MonoBehaviour
     private List<Vector3> projectedWaypoints;
     private List<Vector3> pointNormals;
     private LineRenderer lineRenderer;
-    public bool CoarseMode;
     private bool mouseDown;
     private Material mat;
     public GameObject targetObject;
@@ -34,6 +33,13 @@ public class ManualPathDraw : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Intialize lists
+        projectedWaypoints = new List<Vector3>();
+        screenWaypoints = new List<Vector3>();
+        worldWaypoints = new List<Vector3>();
+        cameraRays = new List<Ray>();
+        pointNormals = new List<Vector3>();
+
         // Create line renderer
         lineRenderer = this.gameObject.AddComponent<LineRenderer>();
 
@@ -85,7 +91,13 @@ public class ManualPathDraw : MonoBehaviour
         worldWaypoints.Add(startWorldPoint);
 
         // Add to list of raycasting rays for later use
-        cameraRays.Add(Camera.main.ScreenPointToRay(startWorldPoint));
+        cameraRays.Add(Camera.main.ScreenPointToRay(startScreenPoint));
+
+        // Debug: Feed list of waypoints to line renderer to draw path
+        /*lineRenderer.startWidth = 0.005f;
+        lineRenderer.endWidth = 0.005f;
+        lineRenderer.positionCount = worldWaypoints.Count;
+        lineRenderer.SetPositions(worldWaypoints.ToArray());*/
     }
 
     void OnMouseClickUp()
@@ -101,14 +113,19 @@ public class ManualPathDraw : MonoBehaviour
 
             for (int i = 0; i < lerp_n; i++)
             {
-                lerp_point = Vector3.Lerp(projectedWaypoints[projectedWaypoints.Count], worldWaypoints[worldWaypoints.Count], (i+1)/lerp_n); // Last lerp point is same as new point
+                float lerpIndex = (i + 1) / (float)lerp_n;
+                //lerp_point = Vector3.Lerp(projectedWaypoints[projectedWaypoints.Count-1], startWorldPoint, lerpIndex); // Last lerp point is same as new point
+                lerp_point = Vector3.Lerp(worldWaypoints[worldWaypoints.Count - 2], startWorldPoint, lerpIndex); // Last lerp point is same as new point
 
                 // Lerp between previous camera ray vector and new camera ray vector to generate vector
-                lerp_rayDirection = Vector3.Lerp(cameraRays[cameraRays.Count - 1].direction, cameraRays[cameraRays.Count].direction, (i + 1) / lerp_n);
-
+                lerp_rayDirection = Vector3.Lerp(cameraRays[cameraRays.Count - 2].direction, cameraRays[cameraRays.Count-1].direction, lerpIndex);
+                
                 // Create rays and raycast to find object points (variable number of points depending on if clicked point actually intersects object)
                 Ray currentRay = new Ray(lerp_point, lerp_rayDirection);
-                
+
+                // Debug
+                UnityEngine.Debug.DrawRay(lerp_point, lerp_rayDirection*1000, Color.blue, 60, false);
+
                 // If we actually hit the object, add the resultant object point to our list
                 if (collider.Raycast(currentRay, out hit, 1000.0f))
                 {
@@ -125,10 +142,13 @@ public class ManualPathDraw : MonoBehaviour
         else 
         {
             // This is the first point. As long as it hits the object, we keep it.
-            Ray currentRay = Camera.main.ScreenPointToRay(screenWaypoints[screenWaypoints.Count]);
+            Ray currentRay = Camera.main.ScreenPointToRay(screenWaypoints[0]);
+
+            // Debug
+            //UnityEngine.Debug.DrawRay(currentRay.origin, currentRay.direction*1000, Color.green, 60, false);
 
             // If we actually hit the object, add the resultant object point to our list
-            if (collider.Raycast(currentRay, out hit, 1000.0f))
+            if (collider.Raycast(currentRay, out hit, 10000.0f))
             {
                 projectedWaypoints.Add(hit.point);
                 pointNormals.Add(hit.normal);
