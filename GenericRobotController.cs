@@ -6,7 +6,7 @@ using InverseKinematics;
 public class GenericRobotController : MonoBehaviour
 {
     // Class Properties
-    public bool AutoFindJoints;
+    public bool ManuallyAssignJoints;
     private int numberOfJoints;
     public ArticulationBody[] robotParts;
     public GameObject InverseKinematicsTarget;
@@ -36,7 +36,7 @@ public class GenericRobotController : MonoBehaviour
         base_joint = this.transform.Find("base_link").GetComponent<ArticulationBody>();
 
         // For auto-finding joints by name
-        if (AutoFindJoints)
+        if (!ManuallyAssignJoints)
         {
             numberOfJoints = base_joint.GetJointPositions(new List<float>());
             joints = new ArticulationBody[numberOfJoints];
@@ -50,18 +50,64 @@ public class GenericRobotController : MonoBehaviour
             joints = robotParts;
         }
 
-        // TO DO: Test use of ArticulationBody.anchorRotation for maybe figuring out axis directions?
         
-        UnityEngine.Debug.Log(string.Join(";", joints[0].anchorRotation));
+        
+        //UnityEngine.Debug.Log(string.Join(";", joints[0].anchorRotation));
 
-        // Axis directions THIS IS TEMPORARILY HARD CODED
+        
         axisDirections = new Vector3[joints.Length];
-        axisDirections[0] = new Vector3(0f, -1f, 0f); // This is right
-        axisDirections[1] = new Vector3(1f, 0f, 0f); // This is right
-        axisDirections[2] = new Vector3(1f, 0f, 0f); // This is right
-        axisDirections[3] = new Vector3(0f, 0f, -1f); // This is right
-        axisDirections[4] = new Vector3(1f, 0f, 0f); // This is right
-        axisDirections[5] = new Vector3(0f, 0f, -1f); // This is right
+        // Axis directions THIS IS TEMPORARILY HARD CODED
+        // TO DO: Test use of ArticulationBody.anchorRotation for maybe figuring out axis directions?
+        /*axisDirections[0] = new Vector3(0f, 1f, 0f); // This is right +1      0,0,90      0,0,270 -1
+        axisDirections[1] = new Vector3(1f, 0f, 0f); // This is right  same     0,0,0
+        axisDirections[2] = new Vector3(1f, 0f, 0f); // This is right  same     0,0,0
+        axisDirections[3] = new Vector3(0f, 0f, 1f); // This is right +1        0,270,0     0,90,0 -1
+        axisDirections[4] = new Vector3(1f, 0f, 0f); // This is right  same     0,0,0
+        axisDirections[5] = new Vector3(0f, 0f, 1f); // This is right +1*/ //   0,270,0     0,90,0 -1
+
+
+
+
+        // Get anchor offsets (attempt at auto calculating axis directions)
+        for (int i = 0; i < joints.Length; i++)
+        {
+            if (joints[i].anchorRotation.eulerAngles.x==0 && joints[i].anchorRotation.eulerAngles.y==0 && joints[i].anchorRotation.eulerAngles.z==0)
+            {
+                axisDirections[i] = new Vector3(1f, 0f, 0f);
+            }
+            else if (joints[i].anchorRotation.eulerAngles.y == 90)
+            {
+                axisDirections[i] = new Vector3(0f, 0f, -1f);
+            }
+            else if (joints[i].anchorRotation.eulerAngles.y == 270)
+            {
+                axisDirections[i] = new Vector3(0f, 0f, 1f);
+            }
+            else if (joints[i].anchorRotation.eulerAngles.z == 90)
+            {
+                axisDirections[i] = new Vector3(0f, 1f, 0f);
+            }
+            else if (joints[i].anchorRotation.eulerAngles.z == 270)
+            {
+                axisDirections[i] = new Vector3(0f, -1f, 0f);
+            }
+            else
+            {
+                axisDirections[i] = new Vector3(0f, 0f, 0f);
+            }
+
+        }
+
+        // Set articulation drives max forces to infinity-ish
+        // Change joint drive modes to target mode
+        for (int i =  0; i < joints.Length; i++)
+        {
+            //joints[i].xDrive.forceLimit = float.MaxValue;
+            joints[i].SetDriveForceLimit(ArticulationDriveAxis.X, float.MaxValue);
+            var drive = joints[i].xDrive;
+            drive.driveType = ArticulationDriveType.Target;
+            joints[i].xDrive = drive;
+        }
 
         // get current robot joint positions
         oldAngles = new float[joints.Length];
