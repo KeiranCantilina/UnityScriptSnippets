@@ -5,10 +5,12 @@ using UnityEngine.UI;
 using MathNet.Numerics.LinearAlgebra.Single;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace InverseKinematics
+//using InverseKinematic;
+namespace KeiranUtils
 {
     public static class GenericIKCalculator
     {
+
         // robot
         //private GameObject[] joint = new GameObject[6];
         public static ArticulationBody[] joint;
