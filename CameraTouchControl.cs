@@ -31,7 +31,7 @@ namespace KeiranUtils
         /// <summary>Controls zoom in/out speed</summary>
         [Range(-10.0f, 10.0f)]
         [Tooltip("Controls zoom in/out speed")]
-        public float ZoomSpeed = 10.0f;
+        public float ZoomSpeed = 20.0f;
 
         /// <summary>Rotation speed</summary>
         [Tooltip("Rotation speed")]
@@ -77,7 +77,6 @@ namespace KeiranUtils
         private float gestureDeltaXRotation;
         private float gestureDeltaYRotation;
         private Quaternion originalRotation;
-        private Vector2 rotationVelocity;
 
         private Vector3 moveVelocity;
         //private float tiltVelocity;
@@ -115,12 +114,7 @@ namespace KeiranUtils
 
             if (r.State == GestureRecognizerState.Executing)
             {
-                rotationVelocity = Vector2.zero;
                 ApplyRotation(DeviceInfo.PixelsToUnits(r.DeltaX) * RotationSpeed, DeviceInfo.PixelsToUnits(r.DeltaY) * RotationSpeed);
-            }
-            else if (r.State == GestureRecognizerState.Ended)
-            {
-                rotationVelocity = new Vector2(DeviceInfo.PixelsToUnits(r.VelocityX) * RotationSpeed * 0.01f, DeviceInfo.PixelsToUnits(r.VelocityY) * RotationSpeed * 0.01f);
             }
         }
 
